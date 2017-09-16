@@ -1,0 +1,16 @@
+{
+  "name": "habits-api",
+  "version": "1.0.0",
+  "description": "Ingest habit data from CSV and serve.",
+  "main": "server.js",
+  "dependencies": {
+    "koa": "^2.2.0",
+    "koa-router": "^7.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "make test"
+  },
+  "author": "jacobmoe@gmail.com",
+  "license": "ISC"
+}
