@@ -5,7 +5,7 @@ const App = () => {
   return (
     <div>
       <div className="container" style={{marginTop: '10%'}}>
-        <section className="header">
+        <section className="header" style={{textAlign: 'center'}}>
           <h2 className="title">Habits</h2>
         </section>
 

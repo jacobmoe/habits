@@ -1,11 +1,13 @@
 {
   "name": "habits-api",
   "version": "1.0.0",
-  "description": "Ingest habit data from CSV and serve.",
-  "main": "server.js",
+  "description": "Sync data loop habit data from Google Drive.",
+  "main": "sync.js",
   "dependencies": {
-    "koa": "^2.2.0",
-    "koa-router": "^7.2.0"
+    "csv": "^1.1.1",
+    "google-auth-library": "^0.11.0",
+    "googleapis": "^21.3.0",
+    "unzip": "^0.1.11"
   },
   "devDependencies": {},
   "scripts": {
