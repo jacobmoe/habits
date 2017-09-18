@@ -1,3 +1,3 @@
 # Habits
 
-![demo](https://github.com/jacobmoe/resistr-api/blob/master/demo.png)
+![demo](https://github.com/jacobmoe/habits/blob/master/demo.png)
