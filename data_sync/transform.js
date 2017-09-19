@@ -2,53 +2,147 @@ const fs = require('fs')
 const unzip = require('unzip')
 const path = require('path')
 const csv = require('csv')
+const moment = require('moment')
 
 const {
   dataDirPath,
+  buildDirPath,
   habitsDataFilename,
   habitsDescriptionFilename
 } = require('./constants')
 
+const descriptionCsvColumnOrder = [
+  'position',
+  'name',
+  'description',
+  'numRepetitions',
+  'interval',
+  'color'
+]
+
+const activityPerformedIndicator = '2'
+
 async function transform (zipFilePath) {
   try {
-    const descriptionCsvFilePath = await retrieveFileFromZip(
+    const descriptionCsvData = await csvDataFromZip(
       zipFilePath,
       habitsDescriptionFilename
     )
 
-    const dataFileCsvPath = await retrieveFileFromZip(
+    const dataFileCsvData = await csvDataFromZip(
       zipFilePath,
-      habitsDataFilename
+      habitsDataFilename,
+      (row) => {
+        // only want data for a year
+        if (moment(row[0], 'YYYY-MM-DD').isValid()) {
+          if (moment(new Date()).diff(moment(row[0]), 'days') > 365) {
+            return false
+          }
+        }
+
+        return true
+      }
     )
+
+    const res = buildDataCollection(descriptionCsvData, dataFileCsvData)
+    await saveData(res, path.join(dataDirPath, 'data.json'))
+    await saveData(res, path.join(buildDirPath, 'data.json'))
+
+    console.log("saved data json")
   } catch (err) {
     console.log("error building data from zip: ", err)
     throw err
   }
 }
 
-function retrieveFileFromZip (zipFilePath, filename) {
+function saveData(data, filePath) {
   return new Promise((resolve, reject) => {
-    const stream = fs.createWriteStream(path.join(dataDirPath, filename))
+    fs.writeFile(filePath, JSON.stringify(data, null, 2), (err) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
 
-    stream.on('finish', () => {
-      resolve(stream.path)
+function buildDataCollection(descCsv, dataCsv) {
+  let res = buildBaseCollection(descCsv);
+  let colNames = dataCsv[0]
+
+  for (let rowNum = 1; rowNum < dataCsv.length; rowNum++) {
+    let row = dataCsv[rowNum]
+    let activitiesOnDate = []
+    let habits = res["habits"]
+
+    Object.keys(res["habits"]).forEach((habitName) => {
+      let dataCsvHabitRowIndex = colNames.indexOf(habitName)
+
+      if (row[dataCsvHabitRowIndex] === activityPerformedIndicator) {
+        activitiesOnDate.push(habitName)
+      }
     })
 
-    stream.on('error', reject)
+    res["dates"][row[0]] = activitiesOnDate
+  }
 
-    fs.createReadStream(zipFilePath)
+  return res
+
+}
+
+function buildBaseCollection(descCsv) {
+  let res = {"habits": {}, "dates": {}}
+
+  // skip first row - it's the header
+  for (let rowNum = 1; rowNum < descCsv.length; rowNum++) {
+    let row = descCsv[rowNum]
+
+    let info = {}
+    for (let colNum = 0; colNum < row.length; colNum++) {
+      info[descriptionCsvColumnOrder[colNum]] = row[colNum]
+    }
+
+    const habitName = row[descriptionCsvColumnOrder.indexOf("name")]
+    res["habits"][habitName] = info
+  }
+
+  return res
+}
+
+function csvDataFromZip (zipFilePath, filename, collectDataCondition) {
+  return new Promise((resolve, reject) => {
+    let results = []
+
+    const readStream = fs.createReadStream(zipFilePath)
+    const parser = csv.parse()
+    collectDataCondition = collectDataCondition || (() => (true))
+
+    parser.on('data', (chunk) => {
+      if (collectDataCondition(chunk)) {
+        results.push(chunk)
+      }
+    })
+
+    parser.on('finish', () => {
+      resolve(results)
+    })
+
+    parser.on('error', reject)
+
+    readStream
       .pipe(unzip.Parse())
       .on('entry', (entry) => {
         var entryName = entry.path;
 
         if (entryName === filename) {
-          entry.pipe(stream);
+          entry.pipe(parser);
         } else {
           entry.autodrain();
         }
       })
       .on('end', () => {
-        stream.close()
+        parser.close()
       })
   })
 }
