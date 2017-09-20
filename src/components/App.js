@@ -1,6 +1,7 @@
 import React from 'react'
 import HabitListContainer from '../containers/HabitListContainer'
 import HabitRow from './HabitRow'
+import HabitSummaryContainer from '../containers/HabitSummaryContainer'
 
 const App = () => {
   return (
@@ -10,7 +11,7 @@ const App = () => {
           <h2 className="title">Habits</h2>
         </section>
 
-        <HabitRow />
+        <HabitSummaryContainer />
         <HabitListContainer />
       </div>
     </div>

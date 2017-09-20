@@ -6,10 +6,10 @@ const HabitList = ({ habits, dates }) => {
     <div>
       { Object.keys(habits).map(name =>
         <HabitRow
-          habit={habits[name]}
           dates={dates}
-          key={name}
-          title={name} />
+          name={name}
+          habit={habits[name]}
+          key={name} />
       )}
     </div>
   )
