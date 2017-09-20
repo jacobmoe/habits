@@ -1,4 +1,5 @@
 import React from 'react'
+import HabitListContainer from '../containers/HabitListContainer'
 import HabitRow from './HabitRow'
 
 const App = () => {
@@ -10,9 +11,7 @@ const App = () => {
         </section>
 
         <HabitRow />
-        <HabitRow title="Running" />
-        <HabitRow title="Meditation" />
-        <HabitRow title="Pushups" />
+        <HabitListContainer />
       </div>
     </div>
   )
